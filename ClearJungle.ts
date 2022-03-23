@@ -19,6 +19,7 @@ import {
   Turn,
   instance as turnInstance,
 } from '@civ-clone/core-turn-based-game/Turn';
+import ClearingJungle from './Rules/ClearingJungle';
 import DelayedAction from '@civ-clone/core-unit/DelayedAction';
 import Grassland from '@civ-clone/base-terrain-grassland/Grassland';
 import Shield from '@civ-clone/base-terrain-feature-shield/Shield';
@@ -44,28 +45,30 @@ export class ClearJungle extends DelayedAction {
   }
 
   perform(): void {
-    const [
-      moveCost,
-    ]: number[] = (this.ruleRegistry() as IMovementCostRegistry)
+    const [moveCost]: number[] = (this.ruleRegistry() as IMovementCostRegistry)
       .process(MovementCost, this.unit(), this)
       .sort((a: number, b: number): number => b - a);
 
-    super.perform(moveCost, (): void => {
-      const terrain = new Grassland(),
-        features = this.#terrainFeatureRegistry.getByTerrain(
-          this.from().terrain()
+    super.perform(
+      moveCost,
+      (): void => {
+        const terrain = new Grassland(),
+          features = this.#terrainFeatureRegistry.getByTerrain(
+            this.from().terrain()
+          );
+
+        (this.ruleRegistry() as IFeatureRegistry).process(
+          Feature,
+          Shield,
+          terrain
         );
 
-      (this.ruleRegistry() as IFeatureRegistry).process(
-        Feature,
-        Shield,
-        terrain
-      );
+        this.#terrainFeatureRegistry.unregister(...features);
 
-      this.#terrainFeatureRegistry.unregister(...features);
-
-      this.from().setTerrain(terrain);
-    });
+        this.from().setTerrain(terrain);
+      },
+      ClearingJungle
+    );
 
     (this.ruleRegistry() as IMovedRegistry).process(Moved, this.unit(), this);
   }
