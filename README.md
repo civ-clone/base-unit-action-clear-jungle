@@ -1,4 +1,3 @@
 # base-unit-action-clear-jungle
 
-This is a template repo.
-
+This package provides the `ClearJungle` `Action` for `Unit`s.
